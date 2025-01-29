@@ -58,6 +58,8 @@ class Colonialism(arcade.Window):
         self.player_list = arcade.SpriteList()
         image_source = "textures/game/mousepointer.png"
         self.player_sprite = arcade.Sprite(image_source, 0.025)
+        self.mouseInfoX = 0
+        self.mouseInfoY = 0
         self.player_list.append(self.player_sprite)
         self.hex_sprites = arcade.SpriteList()
         self.create_hex_grid()
@@ -128,9 +130,11 @@ class Colonialism(arcade.Window):
     def on_mouse_motion(self, x, y, dx, dy):
         mouseX = x + 11
         mouseY = y - 9
-        self.player_sprite.position = mouseX, mouseY
         hovered_hex = self.get_hex_at_position(mouseX, mouseY)
-
+        self.player_sprite.position = mouseX, mouseY
+        self.mouseInfoX = x
+        self.mouseInfoY = y
+        
         if hovered_hex != self.prev_hovered_hex:
             if self.prev_hovered_hex and self.prev_hovered_hex != self.selected_hex:
                 self.prev_hovered_hex.texture = self.texture_empty
@@ -163,20 +167,28 @@ class Colonialism(arcade.Window):
         infoY = 600
 
         # Draw info box background
-        info = arcade.draw_lbwh_rectangle_filled(infoX, infoY, 170, 170, arcade.color.GRAY_BLUE)
-        info_outline = arcade.draw_lbwh_rectangle_outline(infoX, infoY, 170, 170, arcade.color.BLACK, 10) 
+        info = arcade.draw_lbwh_rectangle_filled(infoX, infoY, 170, 130, arcade.color.GRAY_BLUE)
+        info_outline = arcade.draw_lbwh_rectangle_outline(infoX, infoY, 170, 130, arcade.color.BLACK, 10) 
+
+        # Initialize info_text
+        info_text = ""  # Initialize info_text here
 
         # Draw info text for the hovered tile
         hovered_hex = self.get_hex_at_position(self.player_sprite.center_x, self.player_sprite.center_y)
         if hovered_hex:
-            info_text = f"Hex ID: {hovered_hex.data['id']}\n"
-            info_text += f"Terrain: {hovered_hex.data['terrain']}\n"
-            info_text += "Resources:\n"
+            info_mouse = arcade.draw_lbwh_rectangle_filled(self.mouseInfoX + 30, self.mouseInfoY - 70, 160, 60, arcade.color.GRAY_BLUE)
+            info_mouse_outline = arcade.draw_lbwh_rectangle_outline(self.mouseInfoX + 30, self.mouseInfoY - 70, 160, 60, arcade.color.BLACK, 3)
+            info_mouse_text = f"Hex ID: {hovered_hex.data['id']}\n"
+            info_mouse_text += f"Terrain: {hovered_hex.data['terrain']}\n"
+            arcade.draw_text(info_mouse_text, self.mouseInfoX + 40, self.mouseInfoY - 35, arcade.color.WHITE, 14, width=230, align="left", multiline=True)
+
+            
+            info_text += "Resources:\n"  # Now you can safely append text to info_text
 
             for resource, amount in hovered_hex.data["resources"].items():
                 info_text += f"  {resource.capitalize()}: {amount}\n"
 
-            arcade.draw_text(info_text, infoX + 10, infoY + 140, arcade.color.WHITE, 14, width=230, align="left", multiline=True)
+            arcade.draw_text(info_text, infoX + 10, infoY + 100, arcade.color.WHITE, 14, width=230, align="left", multiline=True)
 
 
     def on_update(self, delta_time):
