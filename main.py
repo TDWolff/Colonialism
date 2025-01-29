@@ -165,10 +165,12 @@ class Colonialism(arcade.Window):
         
         infoX = 50
         infoY = 600
+        infoWidth = 170
+        infoHeight = 130
 
         # Draw info box background
-        info = arcade.draw_lbwh_rectangle_filled(infoX, infoY, 170, 130, arcade.color.GRAY_BLUE)
-        info_outline = arcade.draw_lbwh_rectangle_outline(infoX, infoY, 170, 130, arcade.color.BLACK, 10) 
+        info = arcade.draw_lbwh_rectangle_filled(infoX, infoY, infoWidth, infoHeight, arcade.color.GRAY_BLUE)
+        info_outline = arcade.draw_lbwh_rectangle_outline(infoX, infoY, infoWidth, infoHeight, arcade.color.BLACK, 10) 
 
         # Initialize info_text
         info_text = ""  # Initialize info_text here
@@ -180,7 +182,7 @@ class Colonialism(arcade.Window):
             info_mouse_outline = arcade.draw_lbwh_rectangle_outline(self.mouseInfoX + 30, self.mouseInfoY - 70, 160, 60, arcade.color.BLACK, 3)
             info_mouse_text = f"Hex ID: {hovered_hex.data['id']}\n"
             info_mouse_text += f"Terrain: {hovered_hex.data['terrain']}\n"
-            arcade.draw_text(info_mouse_text, self.mouseInfoX + 40, self.mouseInfoY - 35, arcade.color.WHITE, 14, width=230, align="left", multiline=True)
+            arcade.draw_text(info_mouse_text, self.mouseInfoX + 36, self.mouseInfoY - 36, arcade.color.WHITE, 14, width=230, align="left", multiline=True)
 
             
             info_text += "Resources:\n"  # Now you can safely append text to info_text
@@ -188,7 +190,7 @@ class Colonialism(arcade.Window):
             for resource, amount in hovered_hex.data["resources"].items():
                 info_text += f"  {resource.capitalize()}: {amount}\n"
 
-            arcade.draw_text(info_text, infoX + 10, infoY + 100, arcade.color.WHITE, 14, width=230, align="left", multiline=True)
+            arcade.draw_text(info_text, infoX + 10, infoY + infoWidth/2 + 15, arcade.color.WHITE, 14, width=230, align="left", multiline=True)
 
 
     def on_update(self, delta_time):
