@@ -1,9 +1,12 @@
 import arcade
 from screeninfo import get_monitors
+import random
+from perlin_noise import PerlinNoise
+import numpy as np
 
 monitor = get_monitors()[0]
 resolutions = [(1920, 1080), (2560, 1440), (1280, 720)]
-resolution = {monitor.width, monitor.height}
+resolution = (monitor.width, monitor.height)
 
 SCREEN_WIDTH = monitor.width
 SCREEN_HEIGHT = monitor.height
@@ -12,11 +15,21 @@ HEX_EMPTY = "textures/game/emptyTile.png"
 HEX_PLAYER = "textures/game/playerTile.png"
 HEX_SELECT = "textures/game/selectTile.png"
 HEX_SIZE = 7
-ROWS = 5
-COLUMNS = 8
+ROWS = 6
+COLUMNS = 9
 OFFSET = 55
 
 TARGET_FPS = 120
+
+# Tile datas
+terrains = ["grass", "mountain", "desert", "forest", "beach"]
+terrain_resources = {
+    "grass": {"wood": 3, "stone": 1, "coal": 2, "water": 2},
+    "mountain": {"wood": 0, "stone": 5, "coal": 4, "water": 1},
+    "desert": {"wood": 0, "stone": 2, "coal": 1, "water": 0},
+    "forest": {"wood": 5, "stone": 1, "coal": 3, "water": 3},
+    "beach": {"wood": 1, "stone": 1, "coal": 0, "water": 5}
+}
 
 if resolution not in resolutions:
     resolutions.append(resolution)
@@ -46,7 +59,39 @@ class Colonialism(arcade.Window):
         self.player_list.append(self.player_sprite)
         self.hex_sprites = arcade.SpriteList()
         self.create_hex_grid()
+        self.give_hex_data()
+        
+    def give_hex_data(self):
+        scale = 0.5  # Adjust scale for terrain clustering
 
+        for index, hex_sprite in enumerate(self.hex_sprites):
+            x, y = hex_sprite.center_x * scale, hex_sprite.center_y * scale
+            noise = PerlinNoise(octaves=3, seed=random.randint(0, 1000))
+            perlin_value = noise([x, y])
+            
+            # Adjust thresholds to better distribute terrain types
+            if perlin_value < -0.3:
+                terrain = "mountain"
+            elif perlin_value < -0.1:
+                terrain = "forest"
+            elif perlin_value < 0.1:
+                terrain = "grass"
+            elif perlin_value < 0.2:
+                terrain = "beach"
+            else:
+                terrain = "desert"
+            
+            resources = terrain_resources[terrain]
+            
+            hex_sprite.data = {
+                "id": index,
+                "coordinates": (hex_sprite.center_x, hex_sprite.center_y),
+                "terrain": terrain,
+                "resources": resources
+            }
+            print(f"Hex {index} data: {hex_sprite.data}")
+
+            
     def get_hex_at_position(self, x, y):
         for hex_sprite in self.hex_sprites:
             if hex_sprite.collides_with_point((x, y)):
