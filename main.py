@@ -16,7 +16,7 @@ HEX_PLAYER = "textures/game/playerTile.png"
 HEX_SELECT = "textures/game/selectTile.png"
 HEX_SIZE = 7
 ROWS = 6
-COLUMNS = 9
+COLUMNS = 10
 OFFSET = 55
 
 TARGET_FPS = 120
@@ -51,6 +51,8 @@ class Colonialism(arcade.Window):
         self.set_mouse_visible(False)
         self.fps_counter = 0
         self.time_since_last_update = 0  # Track time for FPS control
+        self.selected_index = None
+        self.hex_data_tile = None
 
     def setup(self):
         self.player_list = arcade.SpriteList()
@@ -90,7 +92,8 @@ class Colonialism(arcade.Window):
                 "resources": resources
             }
             print(f"Hex {index} data: {hex_sprite.data}")
-
+            self.selected_index = index
+            self.hex_data_tile = hex_sprite.data
             
     def get_hex_at_position(self, x, y):
         for hex_sprite in self.hex_sprites:
@@ -108,7 +111,7 @@ class Colonialism(arcade.Window):
         y_spacing = hex_height * 0.975
         grid_width = (COLUMNS - 1) * x_spacing + hex_width
         grid_height = (ROWS - 1) * y_spacing + hex_height
-        start_x = (SCREEN_WIDTH - grid_width) / 2 + OFFSET
+        start_x = (SCREEN_WIDTH - grid_width) / 2 + 150
         start_y = (SCREEN_HEIGHT - grid_height) / 2 + OFFSET
 
         for row in range(ROWS):
@@ -144,20 +147,41 @@ class Colonialism(arcade.Window):
                 hovered_hex.texture = self.texture_player
                 self.selected_hex = hovered_hex
                 print("Player selected a tile!")
+                print(f"Hex {self.selected_index} data: {self.hex_data_tile}")
                 self.player_selected = True
-
+                
     def on_draw(self):
         self.clear()
         self.hex_sprites.draw()
         self.player_list.draw()
+
+        # Draw FPS
         fps_text = arcade.Text(f"FPS: {arcade.get_fps():.1f}", 100, SCREEN_HEIGHT - 30, arcade.color.WHITE, 14)
         fps_text.draw()
+        
+        infoX = 50
+        infoY = 600
+
+        # Draw info box background
+        info = arcade.draw_lbwh_rectangle_filled(infoX, infoY, 170, 170, arcade.color.GRAY_BLUE)
+        info_outline = arcade.draw_lbwh_rectangle_outline(infoX, infoY, 170, 170, arcade.color.BLACK, 10) 
+
+        # Draw info text for the hovered tile
+        hovered_hex = self.get_hex_at_position(self.player_sprite.center_x, self.player_sprite.center_y)
+        if hovered_hex:
+            info_text = f"Hex ID: {hovered_hex.data['id']}\n"
+            info_text += f"Terrain: {hovered_hex.data['terrain']}\n"
+            info_text += "Resources:\n"
+
+            for resource, amount in hovered_hex.data["resources"].items():
+                info_text += f"  {resource.capitalize()}: {amount}\n"
+
+            arcade.draw_text(info_text, infoX + 10, infoY + 140, arcade.color.WHITE, 14, width=230, align="left", multiline=True)
+
 
     def on_update(self, delta_time):
-        # Control the FPS manually by using the delta_time value
         self.time_since_last_update += delta_time
         if self.time_since_last_update >= 1 / TARGET_FPS:
-            # Perform any updates here
             self.time_since_last_update -= 1 / TARGET_FPS
             super().on_update(delta_time)  # Call the default update method for things like movement, etc.
 
